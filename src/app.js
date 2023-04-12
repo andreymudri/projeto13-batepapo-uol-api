@@ -53,9 +53,19 @@ app.post('/participants', async (req, res) => {
     }
 });
 
-
 /* */
+app.get('/participants', async (req, res) => {
+    try {
 
+        const participants = await db.collection('participants').find().toArray();
+
+        return res.json(participants);
+
+    } catch (error) {
+        console.log(error.message);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 /* */
 
 
