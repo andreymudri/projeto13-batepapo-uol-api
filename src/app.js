@@ -125,5 +125,57 @@ app.get("/messages", async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
+
+
+app.post('/status', async (req, res) => {
+  const user = req.headers.user;
+
+  if (!user) {
+    return res.status(404).send( 'User not found' );
+  }
+
+  const participants = db.collection("participants");
+  const participantsArray = await participants.find().toArray();
+  const participant = participantsArray.find(participant => participant.name === user);
+  if (!participant) {
+    return res.status(404).send('Participant not found');
+  }
+
+  participant.lastStatus = Date.now();
+
+  await participants.updateOne({ _id: participant._id }, { $set: participant });
+
+  return res.sendStatus(200);
+});
+
+
+setInterval(async () => {
+  try {
+      const participants = await db.collection("participants").find().toArray();
+    const currentTime = Date.now();
+    const time = dayjs().format("HH:mm:ss");
+    const afkParticipants = participants.filter((p) => {
+      if (p.lastStatus < currentTime - 10000) {
+        return p;
+      } else {
+        return false;
+      }
+    });
+      afkParticipants.map(p => {
+          db.collection("messages").insertOne({
+              from: p.name,
+              to: 'Todos',
+              text: "sai da sala...",
+              type: 'status',
+              time
+          });
+          return p.name;
+      });
+      await db.collection("participants").deleteMany({ name: { $in: afkParticipants } });
+  } catch (err) {
+      console.log(err);
+  }
+}, 15000);
+
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server online port ${PORT}.`));
