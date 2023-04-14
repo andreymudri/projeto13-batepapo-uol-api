@@ -155,7 +155,7 @@ setInterval(async () => {
     const currentTime = Date.now();
     const time = dayjs().format("HH:mm:ss");
     const afkParticipants = participants.filter((p) => {
-      if (p.lastStatus < currentTime - 10000) {
+      if ((currentTime - p.lastStatus) >= 10000) {
         return p;
       } else {
         return false;
