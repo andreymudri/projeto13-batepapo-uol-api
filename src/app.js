@@ -161,6 +161,7 @@ setInterval(async () => {
         return false;
       }
     });
+    console.log(afkParticipants)
       afkParticipants.map(p => {
           db.collection("messages").insertOne({
               from: p.name,
@@ -171,7 +172,8 @@ setInterval(async () => {
           });
           return p.name;
       });
-      await db.collection("participants").deleteMany({ name: { $in: afkParticipants } });
+      const afkParticipantNames = afkParticipants.map(p => p.name);
+      await db.collection("participants").deleteMany({ name: { $in: afkParticipantNames } });
   } catch (err) {
       console.log(err);
   }
